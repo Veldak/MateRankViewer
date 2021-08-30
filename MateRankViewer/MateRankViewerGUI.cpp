@@ -42,7 +42,7 @@ void MateRankViewer::RenderSettings()
 		height = ((PlayersList.size() - 1) * 21) + 54;
 	}
 
-
+	//changement 1
 
 	if (ImGui::BeginChild("##PlayerList", ImVec2(337.f, height), true))
 	{
