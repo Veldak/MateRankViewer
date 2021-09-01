@@ -21,6 +21,7 @@
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
 
 
+
 struct Player
 {
 	std::string Name;
@@ -44,12 +45,13 @@ class MateRankViewer : public BakkesMod::Plugin::BakkesModPlugin, public BakkesM
 	float width;
 	float width2;
 
+	bool AutoRefreshPlayersMmr;
 
 	void test();
 	void addPlayer();
 	void removePlayer();
 
-	void MatchStart(std::string eventName);
+	void UpdatePlayersInfos(std::string eventName);
 
 
 	std::vector<Player> PlayersList;

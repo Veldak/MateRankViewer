@@ -15,20 +15,29 @@ void MateRankViewer::onLoad()
 	width = 50;
 	width2 = 400;
 
+	AutoRefreshPlayersMmr = true;
 
-	this->gameWrapper->HookEvent("Function GameEvent_TA.Countdown.BeginState", std::bind(&MateRankViewer::MatchStart, this, std::placeholders::_1));
+	cvarManager->registerNotifier("Mate_getmmr", [this, &cvarManager = this->cvarManager, &gameWrapper = this->gameWrapper](std::vector<std::string> command) {
+		
+		std::thread t1(&MateRankViewer::GetPlayersInfos, this);
+		t1.detach();
+
+	}, "Get the players mmr", 0);
+
+
+	this->gameWrapper->HookEvent("Function GameEvent_TA.Countdown.BeginState", std::bind(&MateRankViewer::UpdatePlayersInfos, this, std::placeholders::_1));
 
 	gameWrapper->RegisterDrawable(std::bind(&MateRankViewer::RenderCanvas, this, std::placeholders::_1));
 }
 
 
-void MateRankViewer::MatchStart(std::string eventName)
+void MateRankViewer::UpdatePlayersInfos(std::string eventName)
 {
-
-
-	std::thread t1(&MateRankViewer::GetPlayersInfos, this);
-	t1.detach();
-
+	if (AutoRefreshPlayersMmr)
+	{
+		std::thread t1(&MateRankViewer::GetPlayersInfos, this);
+		t1.detach();
+	}
 }
 
 void MateRankViewer::GetPlayersInfos()
@@ -49,25 +58,20 @@ void MateRankViewer::GetPlayersInfos()
 		std::string playerPlatform = std::to_string(playerPri.GetPlatform());
 
 
-		cvarManager->log("Name : " + playerName);
-
 		std::string request_url;
 
 		if (playerPlatform == "11")
 		{
-			cvarManager->log("Platform : epic");
 			player.Platform = "Epic";
 			request_url = "https://api.tracker.gg/api/v2/rocket-league/standard/profile/epic/" + playerName;
 		}
 		else if (playerPlatform == "2")
 		{
-			cvarManager->log("Platform : playstation");
 			player.Platform = "PSN";
 			request_url = "https://api.tracker.gg/api/v2/rocket-league/standard/profile/psn/" + playerName;
 		}
 		else if (playerPlatform == "1")
 		{
-			cvarManager->log("Platform : steam");
 			player.Platform = "Steam";
 
 			SteamID ID = playerPri.GetUniqueId();
@@ -76,16 +80,15 @@ void MateRankViewer::GetPlayersInfos()
 		}
 		else if (playerPlatform == "4")
 		{
-			cvarManager->log("Platform : xbox");
 			player.Platform = "Xbox";
 			request_url = "https://api.tracker.gg/api/v2/rocket-league/standard/profile/xbl/" + playerName;
 		}
 		else
 		{
-			cvarManager->log("Unknown Platform");
 			player.Platform = "/";
 			return;
 		}
+
 		cpr::Response request_response = cpr::Get(cpr::Url{ request_url });
 
 		//Parse response json
@@ -93,7 +96,6 @@ void MateRankViewer::GetPlayersInfos()
 		Json::Reader reader;
 
 		reader.parse(request_response.text, actualJson);
-
 
 		const Json::Value segments = actualJson["data"]["segments"];
 
@@ -116,6 +118,13 @@ void MateRankViewer::GetPlayersInfos()
 			}
 		}
 		player.Name = playerName;
+
+
+		cvarManager->log(playerName + "(" + player.Platform + ") :");
+		cvarManager->log("1v1 : " + player.MMR1v1);
+		cvarManager->log("2v2 : " + player.MMR2V2);
+		cvarManager->log("3v3 : " + player.MMR3V3);
+		cvarManager->log("---------------------------------------------------");
 
 		PlayersList.push_back(player);
 	}

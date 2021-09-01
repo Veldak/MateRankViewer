@@ -17,6 +17,8 @@ std::string MateRankViewer::GetPluginName()
 
 void MateRankViewer::RenderSettings()
 {
+	ImGui::Checkbox("Auto Refresh MMR", &AutoRefreshPlayersMmr);
+
 	if (ImGui::Button("test"))
 	{
 		test();
