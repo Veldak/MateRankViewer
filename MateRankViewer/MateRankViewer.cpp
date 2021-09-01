@@ -15,7 +15,7 @@ void MateRankViewer::onLoad()
 	width = 50;
 	width2 = 400;
 
-	AutoRefreshPlayersMmr = true;
+	AutoRefreshPlayersMmr = false;
 
 	cvarManager->registerNotifier("Mate_getmmr", [this, &cvarManager = this->cvarManager, &gameWrapper = this->gameWrapper](std::vector<std::string> command) {
 		
